@@ -1,0 +1,57 @@
+---
+- name: Provision E-Commerce Storefront Web Tier
+  hosts: webservers
+  become: true
+
+  vars:
+    app_title: "Cloud-Native E-Commerce Storefront"
+    environment_name: "Production"
+
+  tasks:
+    - name: 1. Update system package repository
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: 2. Install Nginx web server and utilities
+      apt:
+        name:
+          - nginx
+          - curl
+        state: present
+
+    - name: 3. Deploy E-Commerce storefront landing page
+      copy:
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>{{ app_title }}</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; text-align: center; padding-top: 80px; }
+              .container { max-width: 650px; margin: auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
+              h1 { color: #38bdf8; margin-bottom: 8px; }
+              .badge { display: inline-block; padding: 4px 12px; background: #0369a1; border-radius: 9999px; font-size: 14px; margin-bottom: 20px; }
+              p { color: #94a3b8; line-height: 1.6; }
+              .status { color: #4ade80; font-weight: bold; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <span class="badge">{{ environment_name }} Environment</span>
+              <h1>🛒 {{ app_title }}</h1>
+              <p>Deployment Status: <span class="status">Active & Idempotent</span></p>
+              <p>Automated via <strong>Ansible Configuration Management</strong></p>
+            </div>
+          </body>
+          </html>
+
+    - name: 4. Ensure Nginx service is running and enabled
+      service:
+        name: nginx
+        state: started
+        enabled: yes
